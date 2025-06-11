@@ -3,23 +3,36 @@ package com.hee.sample
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.hee.sample.ui.BrowserBody
+import com.hee.sample.ui.BrowserTopBar
+import com.hee.sample.ui.SiteSidebar
+import com.hee.sample.ui.TabBar
 import com.multiplatform.webview.request.RequestInterceptor
 import com.multiplatform.webview.request.WebRequest
 import com.multiplatform.webview.request.WebRequestInterceptResult
@@ -49,10 +62,6 @@ data class TabInfo(
     val initialHtml: String? = null,
     var title: MutableState<String> = mutableStateOf(if (initialUrl != null) "Loading..." else "Home")
 )
-
-/* --------------------------------------------------------------------------
- * PUBLIC API
- * --------------------------------------------------------------------------*/
 
 @Composable
 fun InterceptRequestSample(navController: NavHostController? = null) {
@@ -114,7 +123,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                     }
                 },
                 onNewTab = {
-                    val newTab = TabInfo(initialUrl = "https://gemini.google.com", title = mutableStateOf("Gemini"))
+                    val newTab = TabInfo(initialHtml = BrowserConfig.INITIAL_HTML)
                     tabs.add(newTab)
                     activeTabIndex = tabs.lastIndex
                 }
@@ -184,324 +193,6 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     }
 }
 
-//@Composable
-//fun InterceptRequestSample(navController: NavHostController? = null) {
-//    var darkTheme by rememberSaveable { mutableStateOf(true) }
-//    var forceDark by rememberSaveable { mutableStateOf(false) }
-//    var sidebarVisible by rememberSaveable { mutableStateOf(true) }
-//
-//    val tabs = remember { mutableStateListOf<TabInfo>() }
-//    var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
-//    val tabStateMap = remember { mutableStateMapOf<String, Pair<WebViewState, WebViewNavigator>>() }
-//    DisposableEffect(Unit) {
-//        onDispose {
-//            // 在此方案中，Compose 会自动处理大部分清理工作
-//        }
-//    }
-//
-//    LaunchedEffect(Unit) {
-//        if (tabs.isEmpty()) {
-//            tabs.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
-//        }
-//    }
-//
-//    val activeTabInfo = tabs.getOrNull(activeTabIndex)
-//    val activeTabStateAndNav = activeTabInfo?.id?.let { tabStateMap[it] }
-//    val activeTabState = activeTabStateAndNav?.first
-//    val activeNavigator = activeTabStateAndNav?.second
-//
-//    val colors = if (darkTheme) darkColors() else lightColors()
-//
-//    MaterialTheme(colors = colors) {
-//        Column {
-//            BrowserTopBar(
-//                navigator = activeNavigator,
-//                onBack = {
-//                    if (activeNavigator?.canGoBack == true) activeNavigator.navigateBack() else navController?.popBackStack()
-//                },
-//                darkTheme = darkTheme,
-//                forceDark = forceDark,
-//                sidebarVisible = sidebarVisible,
-//                onToggleDarkTheme = {
-//                    darkTheme = !darkTheme
-//                },
-//                onToggleForceDark = {
-//                    forceDark = !forceDark
-//                },
-//                onToggleSidebar = { sidebarVisible = !sidebarVisible }
-//            )
-//
-//            TabBar(
-//                tabs = tabs,
-//                activeTabIndex = activeTabIndex,
-//                onTabSelected = { index -> activeTabIndex = index },
-//                onTabClosed = { tabInfo ->
-//                    tabStateMap.remove(tabInfo.id)
-//                    tabs.remove(tabInfo)
-//                    if (activeTabIndex >= tabs.size && tabs.isNotEmpty()) {
-//                        activeTabIndex = tabs.size - 1
-//                    } else if (tabs.isEmpty()) {
-//                        tabs.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
-//                        activeTabIndex = 0
-//                    }
-//                },
-//                onNewTab = {
-//                    val newTab = TabInfo(initialUrl = "https://gemini.google.com", title = mutableStateOf("Gemini"))
-//                    tabs.add(newTab)
-//                    activeTabIndex = tabs.lastIndex
-//                }
-//            )
-//
-//
-//            val loadingState = activeTabState?.loadingState
-//            if (loadingState is LoadingState.Loading) {
-//                LinearProgressIndicator(loadingState.progress, Modifier.fillMaxWidth())
-//            }
-//
-//            BrowserBody(
-//                sidebarVisible = sidebarVisible,
-//                onSiteClick = { host ->
-//                    val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(host))
-//                    tabs.add(newTab)
-//                    activeTabIndex = tabs.lastIndex
-//                },
-//                content = {
-//                    Box(Modifier.fillMaxSize()) {
-//                        tabs.forEachIndexed { index, tabInfo ->
-//                            key(tabInfo.id) {
-//                                val state = if (tabInfo.initialHtml != null) {
-//                                    rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
-//                                } else {
-//                                    rememberWebViewState(url = tabInfo.initialUrl ?: "about:blank")
-//                                }
-//                                val navigator = rememberWebViewNavigator()
-//                                tabStateMap[tabInfo.id] = state to navigator
-//
-//                                val pageTitle = state.pageTitle
-//                                LaunchedEffect(pageTitle) {
-//                                    if (!pageTitle.isNullOrBlank()) {
-//                                        tabInfo.title.value = pageTitle
-//                                    }
-//                                }
-//
-//                                LaunchedEffect(Unit) {
-//                                    state.webSettings.applyDefault()
-//                                    setupPlatformWebSettings(state.webSettings)
-//                                }
-//
-//                                // 切换主题和强制暗黑模式
-//                                LaunchedEffect(darkTheme, forceDark) {
-//                                    delay(100)
-//                                    if (state.loadingState is LoadingState.Finished) {
-//                                        navigator.evaluateJavaScript("toggleTheme($darkTheme);")
-//                                    }
-//                                    toggleForceDarkMode(forceDark, navigator)
-//                                }
-//
-//                                WebView(
-//                                    state = state,
-//                                    navigator = navigator,
-//                                    modifier = if (index == activeTabIndex) {
-//                                        Modifier.fillMaxSize()
-//                                    } else {
-//                                        Modifier.size(0.dp) // 隐藏并使其不占空间
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//            )
-//        }
-//    }
-//}
-
-
-/* --------------------------------------------------------------------------
- * COMPOSABLE BUILDING BLOCKS
- * (BrowserTopBar, TabBar, BrowserBody, SiteSidebar, TabContent... etc)
- * ... (这些部分代码无须修改，保持原样即可) ...
- * --------------------------------------------------------------------------*/
-@Composable
-private fun BrowserTopBar(
-    navigator: WebViewNavigator?,
-    darkTheme: Boolean,
-    forceDark: Boolean,
-    sidebarVisible: Boolean,
-    onBack: () -> Unit,
-    onToggleDarkTheme: () -> Unit,
-    onToggleForceDark: () -> Unit,
-    onToggleSidebar: () -> Unit
-) {
-    TopAppBar(
-        title = {},
-        navigationIcon = {
-            IconButton(onClick = onBack, enabled = navigator?.canGoBack ?: false) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-        },
-        actions = {
-            IconButton(onClick = { navigator?.navigateForward() }, enabled = navigator?.canGoForward ?: false) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Forward")
-            }
-            IconButton(onClick = onToggleForceDark) {
-                Text(if (forceDark) "\uD83D\uDD05" else "🔆", fontSize = 20.sp)
-            }
-            IconButton(onClick = onToggleDarkTheme) {
-                Text(if (darkTheme) "\uD83C\uDF19" else "☀", fontSize = 20.sp)
-            }
-            IconButton(onClick = onToggleSidebar) {
-                Icon(
-                    imageVector = if (sidebarVisible) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = if (sidebarVisible) "Hide sidebar" else "Show sidebar"
-                )
-            }
-        }
-    )
-}
-
-@Composable
-private fun TabBar(
-    tabs: List<TabInfo>,
-    activeTabIndex: Int,
-    onTabSelected: (Int) -> Unit,
-    onTabClosed: (TabInfo) -> Unit,
-    onNewTab: () -> Unit
-) {
-    ScrollableTabRow(
-        selectedTabIndex = activeTabIndex,
-        edgePadding = 0.dp,
-        modifier = Modifier.fillMaxWidth(),
-        backgroundColor = MaterialTheme.colors.surface
-    ) {
-        tabs.forEachIndexed { index, tabInfo ->
-            Tab(
-                selected = index == activeTabIndex,
-                onClick = { onTabSelected(index) },
-                text = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = tabInfo.title.value,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                        IconButton(
-                            onClick = { onTabClosed(tabInfo) },
-                            modifier = Modifier.size(28.dp).padding(start = 4.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Close Tab",
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-            )
-        }
-        // Button to add a new tab
-        IconButton(onClick = onNewTab, modifier = Modifier.padding(4.dp)) {
-            Icon(Icons.Default.Add, contentDescription = "New Tab")
-        }
-    }
-}
-
-
-@Composable
-private fun BrowserBody(
-    sidebarVisible: Boolean,
-    onSiteClick: (String) -> Unit,
-    content: @Composable () -> Unit
-) {
-    Row(Modifier.fillMaxSize()) {
-        AnimatedVisibility(
-            visible = sidebarVisible,
-            enter = slideInHorizontally { -it },
-            exit = slideOutHorizontally { -it }
-        ) {
-            SiteSidebar(onSiteClick = onSiteClick)
-        }
-        Box(Modifier.weight(1f)) {
-            content()
-        }
-    }
-}
-
-@Composable
-private fun SiteSidebar(onSiteClick: (String) -> Unit) {
-    Column(
-        Modifier
-            .fillMaxHeight()
-            .width(120.dp)
-            .padding(8.dp)
-    ) {
-        BrowserConfig.ALLOWED_SITES.forEach { site ->
-            Button(
-                onClick = { onSiteClick(site.host) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Text(site.label, fontSize = 12.sp, maxLines = 1)
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun TabContent(tabState: TabState, darkTheme: Boolean, forceDark: Boolean) {
-    val state = tabState.state
-    val navigator = tabState.navigator
-
-    LaunchedEffect(state.loadingState, darkTheme) {
-        if (state.loadingState is LoadingState.Finished) {
-            delay(100)
-            navigator.evaluateJavaScript("toggleTheme($darkTheme);")
-        }
-    }
-
-    LaunchedEffect(forceDark) {
-        toggleForceDarkMode(forceDark, navigator)
-    }
-
-    WebView(
-        state = state,
-        navigator = navigator,
-        modifier = Modifier.fillMaxSize()
-    )
-}
-
-/* --------------------------------------------------------------------------
- * BUSINESS LOGIC / HELPERS
- * --------------------------------------------------------------------------*/
-
-@Composable
-fun rememberTabContentState(tabInfo: TabInfo): TabState {
-    val state = if (tabInfo.initialHtml != null) {
-        rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
-    } else {
-        rememberWebViewState(url = tabInfo.initialUrl ?: "")
-    }
-
-    val navigator = rememberWebViewNavigator(requestInterceptor = remember {
-        createRequestInterceptor()
-    })
-
-    DisposableEffect(tabInfo.id) {
-        state.webSettings.applyDefault()
-        setupPlatformWebSettings(state.webSettings)
-        onDispose { }
-    }
-
-    return remember(tabInfo.id) { TabState(state, navigator) }
-}
-/* --------------------------------------------------------------------------
- * The rest of the file (BrowserConfig, isUrlAllowed, etc.) remains unchanged.
- * --------------------------------------------------------------------------*/
-
 data class AllowedSite(val label: String, val host: String)
 object BrowserConfig {
     const val INITIAL_HTML: String =
@@ -510,16 +201,13 @@ object BrowserConfig {
         AllowedSite("Gemini", "gemini.google.com"),
         AllowedSite("Google", "www.google.com"),
         AllowedSite("Kimi", "www.kimi.com"),
-        AllowedSite("sojo", "srv.sojo-ai.com"),
+        AllowedSite("tianhu", "www.aitianhu.com")
     )
     val ALLOWED_PATTERNS = listOf(
         ".*://.*aitianhu.*",
         ".*://.*google\\.com.*",
         ".*://.*kimi\\.com.*",
         ".*://.*deepseek\\.com.*",
-
-        ".*://.*xchat-ai.*", // sojo ai
-        ".*://.*sojo-ai\\.com.*",
 
         ".*://.*alicdn\\.com.*",
         ".*://.*localhost.*",

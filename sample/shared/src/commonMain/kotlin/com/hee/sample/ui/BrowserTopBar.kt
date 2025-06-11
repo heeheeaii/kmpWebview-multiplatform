@@ -1,0 +1,54 @@
+package com.hee.sample.ui
+
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.sp
+import com.multiplatform.webview.web.WebViewNavigator
+
+
+@Composable
+fun BrowserTopBar(
+    navigator: WebViewNavigator?,
+    darkTheme: Boolean,
+    forceDark: Boolean,
+    sidebarVisible: Boolean,
+    onBack: () -> Unit,
+    onToggleDarkTheme: () -> Unit,
+    onToggleForceDark: () -> Unit,
+    onToggleSidebar: () -> Unit
+) {
+    TopAppBar(
+        title = {},
+        navigationIcon = {
+            IconButton(onClick = onBack, enabled = navigator?.canGoBack ?: false) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+        },
+        actions = {
+            IconButton(onClick = { navigator?.navigateForward() }, enabled = navigator?.canGoForward ?: false) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Forward")
+            }
+            IconButton(onClick = onToggleForceDark) {
+                Text(if (forceDark) "\uD83D\uDD05" else "🔆", fontSize = 20.sp)
+            }
+            IconButton(onClick = onToggleDarkTheme) {
+                Text(if (darkTheme) "\uD83C\uDF19" else "☀", fontSize = 20.sp)
+            }
+            IconButton(onClick = onToggleSidebar) {
+                Icon(
+                    imageVector = if (sidebarVisible) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = if (sidebarVisible) "Hide sidebar" else "Show sidebar"
+                )
+            }
+        }
+    )
+}
+//
