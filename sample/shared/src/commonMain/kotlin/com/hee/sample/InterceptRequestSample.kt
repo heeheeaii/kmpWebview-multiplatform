@@ -510,13 +510,18 @@ object BrowserConfig {
         AllowedSite("Gemini", "gemini.google.com"),
         AllowedSite("Google", "www.google.com"),
         AllowedSite("Kimi", "www.kimi.com"),
-        AllowedSite("DeepSeek", "chat.deepseek.com")
+        AllowedSite("sojo", "srv.sojo-ai.com"),
     )
     val ALLOWED_PATTERNS = listOf(
         ".*://.*aitianhu.*",
         ".*://.*google\\.com.*",
         ".*://.*kimi\\.com.*",
         ".*://.*deepseek\\.com.*",
+
+        ".*://.*xchat-ai.*", // sojo ai
+        ".*://.*sojo-ai\\.com.*",
+
+        ".*://.*alicdn\\.com.*",
         ".*://.*localhost.*",
         ".*://.*127\\.0\\.0\\.1.*",
         "^(file|data)://.*"
