@@ -237,7 +237,10 @@ fun WebSettings.applyDefault() {
     allowFileAccessFromFileURLs = true
     allowUniversalAccessFromFileURLs = true
     androidWebSettings.apply {
+        domStorageEnabled = true
         useWideViewPort = true
+    }
+    desktopWebSettings.apply {
     }
 }
 
