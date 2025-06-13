@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hee.sample.BrowserConfig
+import com.hee.sample.config.BrowserConfig
 
 @Composable
 fun SiteSidebar(onSiteClick: (label: String, site: String) -> Unit) {
