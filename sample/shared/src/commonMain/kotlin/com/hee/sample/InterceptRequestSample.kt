@@ -1,11 +1,7 @@
 package com.hee.sample
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -31,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.hee.sample.ui.BrowserBody
 import com.hee.sample.ui.BrowserTopBar
-import com.hee.sample.ui.SiteSidebar
 import com.hee.sample.ui.TabBar
 import com.multiplatform.webview.request.RequestInterceptor
 import com.multiplatform.webview.request.WebRequest
@@ -39,6 +34,7 @@ import com.multiplatform.webview.request.WebRequestInterceptResult
 import com.multiplatform.webview.setting.WebSettings
 import com.multiplatform.webview.util.KLogSeverity
 import com.multiplatform.webview.web.LoadingState
+import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.WebViewState
@@ -51,16 +47,11 @@ import kotlinx.coroutines.delay
  * DATA & STATE HOLDERS
  * --------------------------------------------------------------------------*/
 
-data class TabState(
-    val state: WebViewState,
-    val navigator: WebViewNavigator
-)
-
 data class TabInfo(
     val id: String = randomUUID(),
     val initialUrl: String? = null,
     val initialHtml: String? = null,
-    var title: MutableState<String> = mutableStateOf(if (initialUrl != null) "Loading..." else "Home")
+    var title: MutableState<String> = mutableStateOf(if (initialUrl != null) "..." else "\uD83C\uDFE1")
 )
 
 @Composable
@@ -123,7 +114,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                     }
                 },
                 onNewTab = {
-                    val newTab = TabInfo(initialHtml = BrowserConfig.INITIAL_HTML)
+                    val newTab = TabInfo(initialHtml = BrowserConfig.INITIAL_HTML, title = mutableStateOf("Home"))
                     tabs.add(newTab)
                     activeTabIndex = tabs.lastIndex
                 }
@@ -144,18 +135,27 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                 content = {
                     Box(Modifier.fillMaxSize()) {
                         tabs.forEachIndexed { index, tabInfo ->
-                            key(tabInfo.id) {
-                                val state = if (tabInfo.initialHtml != null) {
-                                    rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
-                                } else {
-                                    rememberWebViewState(url = tabInfo.initialUrl ?: "about:blank")
+                            key(tabInfo.id) { // generate key content
+                                var state = tabStateMap[tabInfo.id]?.first
+                                val isHasCache = state != null
+                                var navigator = tabStateMap[tabInfo.id]?.second
+                                if (state == null) {
+                                    state = if (tabInfo.initialHtml != null) {
+                                        rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
+                                    } else if (tabInfo.initialUrl != null) {
+                                        rememberWebViewState(url = tabInfo.initialUrl)
+                                    } else {
+                                        rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
+                                    }
                                 }
-                                val navigator = rememberWebViewNavigator()
+                                navigator = navigator ?: rememberWebViewNavigator()
 
-                                tabStateMap[tabInfo.id] = state to navigator
+                                if (!isHasCache) {
+                                    tabStateMap[tabInfo.id] = state to navigator
+                                }
 
                                 val pageTitle = state.pageTitle
-                                LaunchedEffect(pageTitle) {
+                                LaunchedEffect(pageTitle) {  // launch coroutine
                                     if (!pageTitle.isNullOrBlank()) {
                                         tabInfo.title.value = pageTitle
                                     }
@@ -242,11 +242,15 @@ private const val CSS_FORCE_DARK =
 
 fun WebSettings.applyDefault() {
     logSeverity = KLogSeverity.Debug
-    customUserAgentString = null
+    customUserAgentString =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     isJavaScriptEnabled = true
-    supportZoom = false
+    supportZoom = true
     allowFileAccessFromFileURLs = true
     allowUniversalAccessFromFileURLs = true
+    androidWebSettings.apply {
+        useWideViewPort = true
+    }
 }
 
 expect fun setupPlatformWebSettings(webSettings: WebSettings)
