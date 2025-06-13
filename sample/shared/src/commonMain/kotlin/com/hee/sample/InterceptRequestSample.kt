@@ -34,6 +34,7 @@ import com.multiplatform.webview.request.WebRequestInterceptResult
 import com.multiplatform.webview.setting.WebSettings
 import com.multiplatform.webview.util.KLogSeverity
 import com.multiplatform.webview.web.LoadingState
+import com.multiplatform.webview.web.NativeWebView
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.WebViewState
@@ -151,7 +152,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
 
                                 LaunchedEffect(Unit) {
                                     state.webSettings.applyDefault()
-                                    setupPlatformWebSettings(state.webSettings)
+                                    setupPlatformWebSettings(state.nativeWebView, state.webSettings)
                                 }
 
                                 LaunchedEffect(darkTheme, forceDark) {
@@ -210,6 +211,7 @@ private fun isUrlAllowed(url: String): Boolean {
 }
 
 private fun createRequestInterceptor(): RequestInterceptor = object : RequestInterceptor {
+    // interrupt function
     override fun onInterceptUrlRequest(request: WebRequest, navigator: WebViewNavigator): WebRequestInterceptResult {
         if (!request.isForMainFrame) return WebRequestInterceptResult.Allow
         return if (isUrlAllowed(request.url.lowercase())) WebRequestInterceptResult.Allow else WebRequestInterceptResult.Reject
@@ -236,14 +238,8 @@ fun WebSettings.applyDefault() {
     supportZoom = true
     allowFileAccessFromFileURLs = true
     allowUniversalAccessFromFileURLs = true
-    androidWebSettings.apply {
-        domStorageEnabled = true
-        useWideViewPort = true
-    }
-    desktopWebSettings.apply {
-    }
 }
 
-expect fun setupPlatformWebSettings(webSettings: WebSettings)
+expect fun setupPlatformWebSettings(nativeWebView: NativeWebView, webSettings: WebSettings)
 
 expect fun randomUUID(): String
