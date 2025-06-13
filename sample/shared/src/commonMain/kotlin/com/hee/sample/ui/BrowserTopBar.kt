@@ -20,11 +20,9 @@ import com.multiplatform.webview.web.WebViewNavigator
 @Composable
 fun BrowserTopBar(
     navigator: WebViewNavigator?,
-    darkTheme: Boolean,
     forceDark: Boolean,
     sidebarVisible: Boolean,
     onBack: () -> Unit,
-    onToggleDarkTheme: () -> Unit,
     onToggleForceDark: () -> Unit,
     onToggleSidebar: () -> Unit
 ) {
@@ -42,9 +40,6 @@ fun BrowserTopBar(
             }
             IconButton(onClick = onToggleForceDark) {
                 Text(if (forceDark) "\uD83D\uDD05" else "🔆", fontSize = 20.sp)
-            }
-            IconButton(onClick = onToggleDarkTheme) {
-                Text(if (darkTheme) "\uD83C\uDF19" else "☀", fontSize = 20.sp)
             }
             IconButton(onClick = onToggleSidebar) {
                 Icon(

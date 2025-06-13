@@ -46,7 +46,6 @@ import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 
 @Composable
 fun InterceptRequestSample(navController: NavHostController? = null) {
-    var darkTheme by rememberSaveable { mutableStateOf(true) }
     var forceDark by rememberSaveable { mutableStateOf(false) }
     var sidebarVisible by rememberSaveable { mutableStateOf(true) }
 
@@ -72,7 +71,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     val activeTabState = activeTabStateAndNav?.first
     val activeNavigator = activeTabStateAndNav?.second
 
-    val colors = if (darkTheme) darkColors() else lightColors()
+    val colors = if (forceDark) darkColors() else lightColors()
 
     MaterialTheme(colors = colors) {
         Column {
@@ -81,10 +80,8 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                 onBack = {
                     if (activeNavigator?.canGoBack == true) activeNavigator.navigateBack() else navController?.popBackStack()
                 },
-                darkTheme = darkTheme,
                 forceDark = forceDark,
                 sidebarVisible = sidebarVisible,
-                onToggleDarkTheme = { darkTheme = !darkTheme },
                 onToggleForceDark = { forceDark = !forceDark },
                 onToggleSidebar = { sidebarVisible = !sidebarVisible }
             )
@@ -126,9 +123,8 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                     Box(Modifier.fillMaxSize()) {
                         tabs.forEachIndexed { index, tabInfo ->
                             key(tabInfo.id) { // generate key content
-                                var state = tabStateMap[tabInfo.id]?.first
+                                var state = tabStateMap[tabInfo.id]?.first // cache page state
                                 val isHasCache = state != null
-                                var navigator = tabStateMap[tabInfo.id]?.second
                                 if (state == null) {
                                     state = if (tabInfo.initialHtml != null) {
                                         rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
@@ -138,9 +134,9 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                         rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
                                     }
                                 }
-                                navigator = navigator ?: rememberWebViewNavigator(requestInterceptor = remember {
+                                val navigator = rememberWebViewNavigator(requestInterceptor = remember {
                                     createRequestInterceptor()
-                                })
+                                }) // note:let framework manage navigator
 
                                 if (!isHasCache) {
                                     tabStateMap[tabInfo.id] = state to navigator
@@ -151,11 +147,11 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                     setupPlatformWebSettings(state.nativeWebView, state.webSettings)
                                 }
 
-                                LaunchedEffect(darkTheme, forceDark, state.loadingState) {
+                                LaunchedEffect(forceDark, state.loadingState) {
                                     if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
                                         // 给页面一点时间渲染，确保 JS 函数可用
                                         withFrameNanos { }
-                                        navigator.evaluateJavaScript("toggleTheme($darkTheme);")
+                                        navigator.evaluateJavaScript("toggleTheme($forceDark);")
                                         toggleForceDarkMode(forceDark, navigator)
                                     }
                                 }
