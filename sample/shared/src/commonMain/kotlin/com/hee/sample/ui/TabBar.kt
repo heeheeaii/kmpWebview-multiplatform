@@ -49,7 +49,7 @@ fun TabBar(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
-                            text = tabInfo.id,
+                            text = tabInfo.title.value,
                             modifier = Modifier
                                 .align(Alignment.CenterStart),
                             fontSize = 20.sp,

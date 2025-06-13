@@ -34,7 +34,6 @@ import com.multiplatform.webview.request.WebRequestInterceptResult
 import com.multiplatform.webview.setting.WebSettings
 import com.multiplatform.webview.util.KLogSeverity
 import com.multiplatform.webview.web.LoadingState
-import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.WebViewState
@@ -43,15 +42,11 @@ import com.multiplatform.webview.web.rememberWebViewState
 import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import kotlinx.coroutines.delay
 
-/* --------------------------------------------------------------------------
- * DATA & STATE HOLDERS
- * --------------------------------------------------------------------------*/
-
 data class TabInfo(
     val id: String = randomUUID(),
     val initialUrl: String? = null,
     val initialHtml: String? = null,
-    var title: MutableState<String> = mutableStateOf(if (initialUrl != null) "..." else "Home")
+    var title: MutableState<String> = mutableStateOf("Home")
 )
 
 @Composable
@@ -127,8 +122,8 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
 
             BrowserBody(
                 sidebarVisible = sidebarVisible,
-                onSiteClick = { host ->
-                    val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(host))
+                onSiteClick = { label, host ->
+                    val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(label))
                     tabs.add(newTab)
                     activeTabIndex = tabs.lastIndex
                 },
@@ -152,13 +147,6 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
 
                                 if (!isHasCache) {
                                     tabStateMap[tabInfo.id] = state to navigator
-                                }
-
-                                val pageTitle = state.pageTitle
-                                LaunchedEffect(pageTitle) {  // launch coroutine
-                                    if (!pageTitle.isNullOrBlank()) {
-                                        tabInfo.title.value = pageTitle
-                                    }
                                 }
 
                                 LaunchedEffect(Unit) {

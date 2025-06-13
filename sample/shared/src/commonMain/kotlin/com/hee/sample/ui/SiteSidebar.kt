@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.sp
 import com.hee.sample.BrowserConfig
 
 @Composable
-fun SiteSidebar(onSiteClick: (String) -> Unit) {
+fun SiteSidebar(onSiteClick: (label: String, site: String) -> Unit) {
     Column(
-        Modifier
+        modifier = Modifier
             .fillMaxHeight()
             .width(80.dp)
             .padding(4.dp)
@@ -27,10 +27,10 @@ fun SiteSidebar(onSiteClick: (String) -> Unit) {
     ) {
         BrowserConfig.ALLOWED_SITES.forEach { site ->
             Button(
-                onClick = { onSiteClick(site.host) },
+                onClick = { onSiteClick(site.label, site.host) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                    .padding(1.dp)
             ) {
                 Text(site.label, fontSize = 12.sp, maxLines = 1)
             }

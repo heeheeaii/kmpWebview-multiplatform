@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun BrowserBody(
     sidebarVisible: Boolean,
-    onSiteClick: (String) -> Unit,
+    onSiteClick: (String, String) -> Unit,
     content: @Composable () -> Unit
 ) {
     Row(Modifier.fillMaxSize()) {

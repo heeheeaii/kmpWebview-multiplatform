@@ -1,5 +1,6 @@
 package com.hee.sample.ui
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -10,6 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.multiplatform.webview.web.WebViewNavigator
 
@@ -27,6 +30,7 @@ fun BrowserTopBar(
 ) {
     TopAppBar(
         title = {},
+        modifier = Modifier.height(30.dp),
         navigationIcon = {
             IconButton(onClick = onBack, enabled = navigator?.canGoBack ?: false) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
