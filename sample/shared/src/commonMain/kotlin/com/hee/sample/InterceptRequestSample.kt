@@ -51,7 +51,7 @@ data class TabInfo(
     val id: String = randomUUID(),
     val initialUrl: String? = null,
     val initialHtml: String? = null,
-    var title: MutableState<String> = mutableStateOf(if (initialUrl != null) "..." else "\uD83C\uDFE1")
+    var title: MutableState<String> = mutableStateOf(if (initialUrl != null) "..." else "Home")
 )
 
 @Composable

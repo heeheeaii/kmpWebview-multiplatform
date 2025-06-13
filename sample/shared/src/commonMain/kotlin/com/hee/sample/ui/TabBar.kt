@@ -1,10 +1,19 @@
 package com.hee.sample.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ScrollableTabRow
+import androidx.compose.material.Tab
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -27,46 +36,37 @@ fun TabBar(
     ScrollableTabRow(
         selectedTabIndex = activeTabIndex,
         edgePadding = 0.dp,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(30.dp),
         backgroundColor = MaterialTheme.colors.surface
     ) {
         tabs.forEachIndexed { index, tabInfo ->
             Tab(
+                modifier = Modifier.width(40.dp).fillMaxHeight(),
                 selected = index == activeTabIndex,
                 onClick = { onTabSelected(index) },
-
                 text = {
                     Box(
-                        modifier = Modifier.padding(horizontal = 4.dp).size(30.dp)
+                        modifier = Modifier.fillMaxSize()
                     ) {
-
                         Text(
-
+                            text = tabInfo.id,
                             modifier = Modifier
-                                .align(Alignment.Center)
-
-                                .padding(end = 18.dp),
-                            text = tabInfo.title.value,
-                            fontSize = 12.sp,
+                                .align(Alignment.CenterStart),
+                            fontSize = 20.sp,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Clip
                         )
-
 
                         IconButton(
                             onClick = { onTabClosed(tabInfo) },
-
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-
-
-                                .size(18.dp)
+                                .size(15.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Close Tab",
-
-                                modifier = Modifier.size(12.dp)
+                                modifier = Modifier.size(15.dp)
                             )
                         }
                     }
