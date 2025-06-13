@@ -11,10 +11,21 @@ import com.hee.sample.MainWebView
 import dev.datlag.kcef.KCEF
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.cef.CefApp
+import org.cef.handler.CefAppHandlerAdapter
 import java.io.File
 
 fun main() =
     application {
+        val cefHandler = object : CefAppHandlerAdapter(emptyArray()) {}
+        cefHandler.updateArgs(
+            arrayOf(
+                "--disable-features=BlockThirdPartyCookies,RestrictThirdPartyCookiePartitions",
+                "--enable-features=LegacyCookieAccess"
+            )
+        )
+        CefApp.addAppHandler(cefHandler) // enable cookie default, in new chrome will be block default
+
         Window(onCloseRequest = ::exitApplication) {
             var restartRequired by remember { mutableStateOf(false) }
             var downloading by remember { mutableStateOf(0F) }
