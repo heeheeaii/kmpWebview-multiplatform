@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +43,7 @@ import com.multiplatform.webview.web.WebViewState
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
+import kotlinx.coroutines.delay
 
 @Composable
 fun InterceptRequestSample(navController: NavHostController? = null) {
@@ -51,10 +53,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     val tabs = remember { mutableStateListOf<TabInfo>() }
     var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    val tabStateMap = remember { mutableMapOf<String, WebViewState>() }
-
-    var activeNavigator by remember { mutableStateOf<WebViewNavigator?>(null) }
-
+    val tabStateMap = remember { mutableStateMapOf<String, Pair<WebViewState, WebViewNavigator>>() }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -69,7 +68,9 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     }
 
     val activeTabInfo = tabs.getOrNull(activeTabIndex)
-    val activeTabState = activeTabInfo?.id?.let { tabStateMap[it] }
+    val activeTabStateAndNav = activeTabInfo?.id?.let { tabStateMap[it] }
+    val activeTabState = activeTabStateAndNav?.first
+    var activeNavigator by remember { mutableStateOf(activeTabStateAndNav?.second) }
 
     val colors = if (forceDark) darkColors() else lightColors()
 
@@ -122,8 +123,9 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                 content = {
                     Box(Modifier.fillMaxSize()) {
                         tabs.forEachIndexed { index, tabInfo ->
-                            key(tabInfo.id) {
-                                var state = tabStateMap[tabInfo.id]
+                            key(tabInfo.id) { // generate key content
+                                var state = tabStateMap[tabInfo.id]?.first // cache page state
+                                val isHasCache = state != null
                                 if (state == null) {
                                     state = if (tabInfo.initialHtml != null) {
                                         rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
@@ -132,30 +134,35 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                     } else {
                                         rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
                                     }
-                                    tabStateMap[tabInfo.id] = state
+                                    LaunchedEffect(Unit) {
+                                        state.webSettings.applyDefault()
+                                        setupPlatformWebSettings(state.nativeWebView, state.webSettings)
+                                    }
+                                }
+                                var navigator = tabStateMap[tabInfo.id]?.second
+                                if (navigator == null) {
+                                    navigator = rememberWebViewNavigator(
+                                        requestInterceptor = remember {
+                                            createRequestInterceptor()
+                                        }
+                                    )
                                 }
 
-                                val navigator = rememberWebViewNavigator(requestInterceptor = remember {
-                                    createRequestInterceptor()
-                                }) // note:let framework manage navigator
+                                if (!isHasCache) {
+                                    tabStateMap[tabInfo.id] = state to navigator
+                                }
 
                                 if (index == activeTabIndex) {
                                     LaunchedEffect(navigator) {
                                         activeNavigator = navigator
                                     }
-                                }
-
-                                LaunchedEffect(Unit) {
-                                    state.webSettings.applyDefault()
-                                    setupPlatformWebSettings(state.nativeWebView, state.webSettings)
-                                }
-
-                                LaunchedEffect(forceDark, state.loadingState) {
-                                    if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
-                                        // 给页面一点时间渲染，确保 JS 函数可用
-                                        withFrameNanos { }
-                                        navigator.evaluateJavaScript("toggleTheme($forceDark);")
-                                        toggleForceDarkMode(forceDark, navigator)
+                                    LaunchedEffect(forceDark, state.loadingState) {
+                                        if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
+                                            // 给页面一点时间渲染，确保 JS 函数可用
+                                            delay(100)
+                                            navigator.evaluateJavaScript("toggleTheme($forceDark);")
+                                            toggleForceDarkMode(forceDark, navigator)
+                                        }
                                     }
                                 }
 
@@ -166,7 +173,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                         Modifier.fillMaxSize()
                                     } else {
                                         Modifier.size(0.dp)
-                                    }
+                                    } // if not place here will cause every time reload web
                                 )
                             }
                         }
@@ -192,6 +199,7 @@ private fun createRequestInterceptor(): RequestInterceptor = object : RequestInt
 
 private const val CSS_FORCE_DARK =
     """/* 强制黑暗模式样式 */*,*::before,*::after{background-color:#121212!important;color:#e0e0e0!important;border-color:#333!important;outline-color:#333!important;}a,a:visited{color:#64b5f6!important;}a:hover,a:active{color:#90caf9!important;}input,textarea,select,button{background-color:#1e1e1e!important;color:#e0e0e0!important;border:1px solid #333!important;}button,input[type='button'],input[type='submit'],input[type='reset']{background-color:#333!important;color:#e0e0e0!important;}button:hover{background-color:#424242!important;}pre,code{background-color:#0d1117!important;color:#f0f6fc!important;border:1px solid #30363d!important;}table,th,td{background-color:#1e1e1e!important;color:#e0e0e0!important;border-color:#333!important;}th{background-color:#333!important;}img,video,iframe,embed,object{filter:brightness(.8) contrast(1.2)!important;}svg{filter:invert(1) hue-rotate(180deg)!important;}::selection{background-color:#3700b3!important;color:#fff!important;}::-webkit-scrollbar{background-color:#1e1e1e!important;}::-webkit-scrollbar-thumb{background-color:#333!important;}::-webkit-scrollbar-thumb:hover{background-color:#424242!important;}[style*='background-color: white'],[style*='background-color: #fff'],[style*='background-color: #ffffff']{background-color:#121212!important;}[style*='color: black'],[style*='color: #000'],[style*='color: #000000']{color:#e0e0e0!important;}"""
+
 fun toggleForceDarkMode(enable: Boolean, navigator: WebViewNavigator) {
     val script = if (enable) buildString {
         append("(function(){let style=document.getElementById('force-dark-style');if(style)style.remove();style=document.createElement('style');style.id='force-dark-style';style.textContent=`${CSS_FORCE_DARK}`;document.head.appendChild(style);})();")
