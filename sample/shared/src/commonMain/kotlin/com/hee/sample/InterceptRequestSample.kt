@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -119,8 +120,9 @@ fun InterceptRequestSample() {
                 },
                 content = {
                     Box(Modifier.fillMaxSize()) {
+                        val boxScope = rememberCoroutineScope()
                         tabs_RS.forEachIndexed { index, tabInfo ->
-                            key(tabInfo.id) { // generate key content
+                            key(tabInfo.id) {
                                 var state = tabStateMap_RS[tabInfo.id]?.first // cache page state
                                 val isHasCache = state != null
                                 if (state == null) {
@@ -139,6 +141,7 @@ fun InterceptRequestSample() {
                                 var navigator = tabStateMap_RS[tabInfo.id]?.second
                                 if (navigator == null) {
                                     navigator = rememberWebViewNavigator(
+                                        coroutineScope = boxScope,
                                         requestInterceptor = remember {
                                             createRequestInterceptor()
                                         }

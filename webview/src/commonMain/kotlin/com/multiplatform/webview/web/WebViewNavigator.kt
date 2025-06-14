@@ -269,7 +269,9 @@ class WebViewNavigator(val coroutineScope: CoroutineScope, val requestIntercepto
      * Navigates the webview back to the previous page.
      */
     fun navigateBack() {
-        coroutineScope.launch { navigationEvents.emit(NavigationEvent.Back) }
+        coroutineScope.launch {
+            navigationEvents.emit(NavigationEvent.Back)
+        }
     }
 
     /**
