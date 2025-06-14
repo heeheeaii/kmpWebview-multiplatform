@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,7 +51,10 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     val tabs = remember { mutableStateListOf<TabInfo>() }
     var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    val tabStateMap = remember { mutableStateMapOf<String, Pair<WebViewState, WebViewNavigator>>() }
+    val tabStateMap = remember { mutableMapOf<String, WebViewState>() }
+
+    var activeNavigator by remember { mutableStateOf<WebViewNavigator?>(null) }
+
 
     DisposableEffect(Unit) {
         onDispose {
@@ -67,9 +69,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     }
 
     val activeTabInfo = tabs.getOrNull(activeTabIndex)
-    val activeTabStateAndNav = activeTabInfo?.id?.let { tabStateMap[it] }
-    val activeTabState = activeTabStateAndNav?.first
-    val activeNavigator = activeTabStateAndNav?.second
+    val activeTabState = activeTabInfo?.id?.let { tabStateMap[it] }
 
     val colors = if (forceDark) darkColors() else lightColors()
 
@@ -78,7 +78,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
             BrowserTopBar(
                 navigator = activeNavigator,
                 onBack = {
-                    if (activeNavigator?.canGoBack == true) activeNavigator.navigateBack() else navController?.popBackStack()
+                    if (activeNavigator?.canGoBack == true) activeNavigator?.navigateBack() else navController?.popBackStack()
                 },
                 forceDark = forceDark,
                 sidebarVisible = sidebarVisible,
@@ -96,8 +96,8 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                     if (activeTabIndex >= tabs.size && tabs.isNotEmpty()) {
                         activeTabIndex = tabs.size - 1
                     } else if (tabs.isEmpty()) {
-                        tabs.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
                         activeTabIndex = 0
+                        tabs.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
                     }
                 },
                 onNewTab = {
@@ -122,9 +122,8 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                 content = {
                     Box(Modifier.fillMaxSize()) {
                         tabs.forEachIndexed { index, tabInfo ->
-                            key(tabInfo.id) { // generate key content
-                                var state = tabStateMap[tabInfo.id]?.first // cache page state
-                                val isHasCache = state != null
+                            key(tabInfo.id) {
+                                var state = tabStateMap[tabInfo.id]
                                 if (state == null) {
                                     state = if (tabInfo.initialHtml != null) {
                                         rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
@@ -133,13 +132,17 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                     } else {
                                         rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
                                     }
+                                    tabStateMap[tabInfo.id] = state
                                 }
+
                                 val navigator = rememberWebViewNavigator(requestInterceptor = remember {
                                     createRequestInterceptor()
                                 }) // note:let framework manage navigator
 
-                                if (!isHasCache) {
-                                    tabStateMap[tabInfo.id] = state to navigator
+                                if (index == activeTabIndex) {
+                                    LaunchedEffect(navigator) {
+                                        activeNavigator = navigator
+                                    }
                                 }
 
                                 LaunchedEffect(Unit) {
