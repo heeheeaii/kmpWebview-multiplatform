@@ -78,9 +78,6 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
         Column {
             BrowserTopBar(
                 navigator = activeNavigator,
-                onBack = {
-                    if (activeNavigator?.canGoBack == true) activeNavigator?.navigateBack() else navController?.popBackStack()
-                },
                 forceDark = forceDark,
                 sidebarVisible = sidebarVisible,
                 onToggleForceDark = { forceDark = !forceDark },
