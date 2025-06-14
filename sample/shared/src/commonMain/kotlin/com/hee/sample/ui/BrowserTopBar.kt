@@ -29,7 +29,9 @@ fun BrowserTopBar(
         title = {},
         modifier = Modifier.height(30.dp),
         actions = {
-            IconButton(onClick =  { navigator?.navigateBack() }, enabled = navigator?.canGoBack ?: false) {
+            IconButton(onClick = {
+                navigator?.navigateBack()
+            }, enabled = navigator?.canGoBack ?: false) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
             IconButton(onClick = { navigator?.navigateForward() }, enabled = navigator?.canGoForward ?: false) {

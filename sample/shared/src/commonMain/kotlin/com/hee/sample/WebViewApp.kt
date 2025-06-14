@@ -48,7 +48,7 @@ internal fun WebViewApp() {
             KeepStateWebview(controller)
         }
         composable("intercept") {
-            InterceptRequestSample(controller)
+            InterceptRequestSample()
         }
         composable("file") {
             FileChooseWebViewSample(controller)

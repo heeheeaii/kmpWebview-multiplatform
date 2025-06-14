@@ -21,10 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.hee.sample.config.BrowserConfig
 import com.hee.sample.config.applyDefault
 import com.hee.sample.data.TabInfo
@@ -46,14 +44,16 @@ import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import kotlinx.coroutines.delay
 
 @Composable
-fun InterceptRequestSample(navController: NavHostController? = null) {
-    var forceDark by rememberSaveable { mutableStateOf(false) }
-    var sidebarVisible by rememberSaveable { mutableStateOf(true) }
+fun InterceptRequestSample() {
+    var forceDark_RS by rememberSaveable { mutableStateOf(false) }
+    var sidebarVisible_RS by rememberSaveable { mutableStateOf(true) }
 
-    val tabs = remember { mutableStateListOf<TabInfo>() }
-    var activeTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    val tabs_RS = remember {
+        mutableStateListOf<TabInfo>()
+    }
+    var activeTabIndex_RS by rememberSaveable { mutableIntStateOf(0) }
 
-    val tabStateMap = remember { mutableStateMapOf<String, Pair<WebViewState, WebViewNavigator>>() }
+    val tabStateMap_RS = remember { mutableStateMapOf<String, Pair<WebViewState, WebViewNavigator>>() }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -62,46 +62,46 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
     }
 
     LaunchedEffect(Unit) {
-        if (tabs.isEmpty()) {
-            tabs.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
+        if (tabs_RS.isEmpty()) {
+            tabs_RS.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
         }
     }
 
-    val activeTabInfo = tabs.getOrNull(activeTabIndex)
-    val activeTabStateAndNav = activeTabInfo?.id?.let { tabStateMap[it] }
+    val activeTabInfo = tabs_RS.getOrNull(activeTabIndex_RS)
+    val activeTabStateAndNav = activeTabInfo?.id?.let { tabStateMap_RS[it] }
     val activeTabState = activeTabStateAndNav?.first
-    var activeNavigator by remember { mutableStateOf(activeTabStateAndNav?.second) }
+    var activeNavigator_RS by remember { mutableStateOf(activeTabStateAndNav?.second) }
 
-    val colors = if (forceDark) darkColors() else lightColors()
+    val colors = if (forceDark_RS) darkColors() else lightColors()
 
     MaterialTheme(colors = colors) {
         Column {
             BrowserTopBar(
-                navigator = activeNavigator,
-                forceDark = forceDark,
-                sidebarVisible = sidebarVisible,
-                onToggleForceDark = { forceDark = !forceDark },
-                onToggleSidebar = { sidebarVisible = !sidebarVisible }
+                navigator = activeNavigator_RS,
+                forceDark = forceDark_RS,
+                sidebarVisible = sidebarVisible_RS,
+                onToggleForceDark = { forceDark_RS = !forceDark_RS },
+                onToggleSidebar = { sidebarVisible_RS = !sidebarVisible_RS }
             )
 
             TabBar(
-                tabs = tabs,
-                activeTabIndex = activeTabIndex,
-                onTabSelected = { index -> activeTabIndex = index },
+                tabs = tabs_RS,
+                activeTabIndex = activeTabIndex_RS,
+                onTabSelected = { index -> activeTabIndex_RS = index },
                 onTabClosed = { tabInfo ->
-                    tabStateMap.remove(tabInfo.id)
-                    tabs.remove(tabInfo)
-                    if (activeTabIndex >= tabs.size && tabs.isNotEmpty()) {
-                        activeTabIndex = tabs.size - 1
-                    } else if (tabs.isEmpty()) {
-                        activeTabIndex = 0
-                        tabs.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
+                    tabStateMap_RS.remove(tabInfo.id)
+                    tabs_RS.remove(tabInfo)
+                    if (activeTabIndex_RS >= tabs_RS.size && tabs_RS.isNotEmpty()) {
+                        activeTabIndex_RS = tabs_RS.size - 1
+                    } else if (tabs_RS.isEmpty()) {
+                        activeTabIndex_RS = 0
+                        tabs_RS.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
                     }
                 },
                 onNewTab = {
                     val newTab = TabInfo(initialHtml = BrowserConfig.INITIAL_HTML, title = mutableStateOf("Home"))
-                    tabs.add(newTab)
-                    activeTabIndex = tabs.lastIndex
+                    tabs_RS.add(newTab)
+                    activeTabIndex_RS = tabs_RS.lastIndex
                 }
             )
 
@@ -111,17 +111,17 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
             }
 
             BrowserBody(
-                sidebarVisible = sidebarVisible,
+                sidebarVisible = sidebarVisible_RS,
                 onSiteClick = { label, host ->
                     val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(label))
-                    tabs.add(newTab)
-                    activeTabIndex = tabs.lastIndex
+                    tabs_RS.add(newTab)
+                    activeTabIndex_RS = tabs_RS.lastIndex
                 },
                 content = {
                     Box(Modifier.fillMaxSize()) {
-                        tabs.forEachIndexed { index, tabInfo ->
+                        tabs_RS.forEachIndexed { index, tabInfo ->
                             key(tabInfo.id) { // generate key content
-                                var state = tabStateMap[tabInfo.id]?.first // cache page state
+                                var state = tabStateMap_RS[tabInfo.id]?.first // cache page state
                                 val isHasCache = state != null
                                 if (state == null) {
                                     state = if (tabInfo.initialHtml != null) {
@@ -136,7 +136,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                         setupPlatformWebSettings(state.nativeWebView, state.webSettings)
                                     }
                                 }
-                                var navigator = tabStateMap[tabInfo.id]?.second
+                                var navigator = tabStateMap_RS[tabInfo.id]?.second
                                 if (navigator == null) {
                                     navigator = rememberWebViewNavigator(
                                         requestInterceptor = remember {
@@ -146,19 +146,19 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                 }
 
                                 if (!isHasCache) {
-                                    tabStateMap[tabInfo.id] = state to navigator
+                                    tabStateMap_RS[tabInfo.id] = state to navigator
                                 }
 
-                                if (index == activeTabIndex) {
+                                if (index == activeTabIndex_RS) {
                                     LaunchedEffect(navigator) {
-                                        activeNavigator = navigator
+                                        activeNavigator_RS = navigator
                                     }
-                                    LaunchedEffect(forceDark, state.loadingState) {
+                                    LaunchedEffect(forceDark_RS, state.loadingState) {
                                         if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
                                             // 给页面一点时间渲染，确保 JS 函数可用
                                             delay(100)
-                                            navigator.evaluateJavaScript("toggleTheme($forceDark);")
-                                            toggleForceDarkMode(forceDark, navigator)
+                                            navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
+                                            toggleForceDarkMode(forceDark_RS, navigator)
                                         }
                                     }
                                 }
@@ -166,7 +166,7 @@ fun InterceptRequestSample(navController: NavHostController? = null) {
                                 WebView(
                                     state = state,
                                     navigator = navigator,
-                                    modifier = if (index == activeTabIndex) {
+                                    modifier = if (index == activeTabIndex_RS) {
                                         Modifier.fillMaxSize()
                                     } else {
                                         Modifier.size(0.dp)
