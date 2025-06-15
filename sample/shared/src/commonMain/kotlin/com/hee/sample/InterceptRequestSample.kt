@@ -73,7 +73,8 @@ fun InterceptRequestSample() {
     val activeTabState = activeTabStateAndNav?.first
     var activeNavigator_RS by remember { mutableStateOf(activeTabStateAndNav?.second) }
 
-    val colors = if (forceDark_RS) darkColors() else lightColors()
+//    val colors = if (forceDark_RS) darkColors() else lightColors()
+    val colors = darkColors()
 
     MaterialTheme(colors = colors) {
         Column {

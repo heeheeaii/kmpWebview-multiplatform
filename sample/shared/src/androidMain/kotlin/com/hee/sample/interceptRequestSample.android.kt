@@ -9,7 +9,6 @@ actual fun setupPlatformWebSettings(nativeWebView: NativeWebView, webSettings: W
     webSettings.androidWebSettings.apply {
         domStorageEnabled = true
         allowFileAccess = true
-        useWideViewPort = true
     }
     CookieManager.getInstance().apply {
         setAcceptCookie(true)
