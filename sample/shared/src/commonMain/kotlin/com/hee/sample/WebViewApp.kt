@@ -38,20 +38,8 @@ internal fun WebViewApp() {
         composable("main") {
             MainScreen(controller)
         }
-        composable("basic") {
-            BasicWebViewSample(controller)
-        }
-        composable("html") {
-            BasicWebViewWithHTMLSample(controller)
-        }
-        composable("tab") {
-            KeepStateWebview(controller)
-        }
         composable("intercept") {
             InterceptRequestSample()
-        }
-        composable("file") {
-            FileChooseWebViewSample(controller)
         }
     }
 }

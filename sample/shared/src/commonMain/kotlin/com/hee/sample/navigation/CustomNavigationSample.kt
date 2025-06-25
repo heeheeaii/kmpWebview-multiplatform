@@ -18,14 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 
-/**
- * Created By Kevin Zou On 2023/12/12
- */
-
-@Composable
-fun CustomNavigationSample() {
-    CustomNavigationScreen()
-}
 
 @Composable
 fun <T : Any> Navigation(

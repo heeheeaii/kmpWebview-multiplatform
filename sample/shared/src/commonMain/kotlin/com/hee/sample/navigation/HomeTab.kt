@@ -17,30 +17,6 @@ import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberSaveableWebViewState
 import com.multiplatform.webview.web.rememberWebViewNavigator
 
-/**
- * Created By Kevin Zou On 2023/12/8
- */
-object HomeTab : Tab {
-    @Composable
-    override fun Content() {
-        Home()
-    }
-
-    override val options: TabOptions
-        @Composable
-        get() {
-            val title = "Home"
-            val icon = rememberVectorPainter(Icons.Default.Home)
-
-            return remember {
-                TabOptions(
-                    index = 0u,
-                    title = title,
-                    icon = icon,
-                )
-            }
-        }
-}
 
 @Composable
 fun Home() {
