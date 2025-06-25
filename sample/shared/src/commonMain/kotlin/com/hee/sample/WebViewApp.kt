@@ -51,35 +51,11 @@ fun MainScreen(controller: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-//        Button(onClick = {
-//            controller.navigate("basic")
-//        }) {
-//            Text("Basic Sample", fontSize = 18.sp)
-//        }
-//        Spacer(modifier = Modifier.height(20.dp))
-//        Button(onClick = {
-//            controller.navigate("html")
-//        }) {
-//            Text("HTML Sample", fontSize = 18.sp)
-//        }
-//        Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = {
-            controller.navigate("tab")
-        }) {
-            Text("SaveState Sample", fontSize = 18.sp)
-        }
-        Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
             controller.navigate("intercept")
         }) {
             Text("Intercept Request Sample", fontSize = 18.sp)
         }
-//        Spacer(modifier = Modifier.height(20.dp))
-//        Button(onClick = {
-//            controller.navigate("file")
-//        }) {
-//            Text("File Choose Sample", fontSize = 18.sp)
-//        }
     }
 }
 
