@@ -29,9 +29,9 @@ import com.hee.sample.data.TabInfo
 fun TabBar(
     tabs: List<TabInfo>,
     activeTabIndex: Int,
-    onTabSelected: (Int) -> Unit,
-    onTabClosed: (TabInfo) -> Unit,
-    onNewTab: () -> Unit
+    onTabSelected: (Int) -> Unit = {},
+    onTabClosed: (TabInfo) -> Unit = {},
+    onNewTab: () -> Unit = {}
 ) {
     ScrollableTabRow(
         selectedTabIndex = activeTabIndex,

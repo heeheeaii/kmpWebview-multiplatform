@@ -3,8 +3,9 @@ agp = "8.1.1" # gradle
 compose = "1.7.1" # kmp
 kotlin = "1.9.23"
 coroutines = "1.8.0"
-voyager = "1.0.0-rc10" # kmp navagator
+# kmp navagator
 # kmp put in kotlinx namespace
+voyager = "1.0.0-rc10"
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" } # packge apk
 android-library = { id = "com.android.library", version.ref = "agp" } # packet android lib
@@ -30,4 +31,4 @@ kotlin-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-s
 kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0" # json serial
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" } # test
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" } # kmp compose nav
-voyager-tabNavigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" } # kmp compose tab
+voyager-tabNavigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }

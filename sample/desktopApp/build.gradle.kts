@@ -17,12 +17,9 @@ kotlin {
             implementation(project(":sample:shared"))
             implementation("org.jogamp.gluegen:gluegen-rt:2.5.0")
             implementation("org.jogamp.jogl:jogl-all:2.5.0")
-
             // java.lang.NoClassDefFoundError: androidx/lifecycle/ViewModelStoreOwner
             implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose-desktop:2.8.0")
             implementation("androidx.lifecycle:lifecycle-runtime:2.8.0")
-
-
         }
     }
 }
