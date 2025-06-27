@@ -13,10 +13,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,13 +25,14 @@ fun BrowserTopBar(
     forceDark: Boolean,
     sidebarVisible: Boolean,
     onToggleForceDark: () -> Unit,
-    onToggleSidebar: () -> Unit
+    onToggleSidebar: () -> Unit,
 ) {
     TopAppBar(
         title = {},
         modifier = Modifier.height(30.dp),
         actions = {
             IconButton(onClick = {
+                navigator?.reload()
             }) {
                 Icon(
                     imageVector = Icons.Filled.Refresh,
