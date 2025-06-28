@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -24,11 +24,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hee.sample.config.BrowserConfig
 import com.hee.sample.config.applyDefault
-import com.hee.sample.data.BrowserViewModel
-import com.hee.sample.data.CustomViewModelFactory
 import com.hee.sample.data.TabInfo
 import com.hee.sample.ui.BrowserBody
 import com.hee.sample.ui.BrowserTopBar
@@ -40,6 +37,7 @@ import com.multiplatform.webview.request.WebRequestInterceptResult
 import com.multiplatform.webview.setting.WebSettings
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.NativeWebView
+import com.multiplatform.webview.web.PlatformWebViewParams
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.WebViewState
@@ -49,13 +47,14 @@ import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import kotlinx.coroutines.delay
 
 @Composable
-fun interceptRequestSample(viewModel: BrowserViewModel = viewModel(factory = CustomViewModelFactory())) {
-    val forceDark_RS = viewModel.forceDark.collectAsState()
+fun interceptRequestSample() {
+    var forceDark_RS by rememberSaveable { mutableStateOf(true) }
     var sidebarVisible_RS by rememberSaveable { mutableStateOf(true) }
 
     val tabs_RS = remember {
         mutableStateListOf<TabInfo>()
     }
+
     var activeTabIndex_RS by rememberSaveable { mutableIntStateOf(0) }
 
     val tabStateMap_RS = remember { mutableStateMapOf<String, Pair<WebViewState, WebViewNavigator>>() }
@@ -77,16 +76,15 @@ fun interceptRequestSample(viewModel: BrowserViewModel = viewModel(factory = Cus
     val activeTabState = activeTabStateAndNav?.first
     var activeNavigator_RS by remember { mutableStateOf(activeTabStateAndNav?.second) }
 
-//    val colors = if (forceDark_RS) darkColors() else lightColors()
-    val colors = darkColors()
+    val colors = if (forceDark_RS) darkColors() else lightColors()
 
     MaterialTheme(colors = colors) {
         Column {
             BrowserTopBar(
                 navigator = activeNavigator_RS,
-                forceDark = forceDark_RS.value,
+                forceDark = forceDark_RS,
                 sidebarVisible = sidebarVisible_RS,
-                onToggleForceDark = { viewModel.toggleForceDark() },
+                onToggleForceDark = { forceDark_RS = !forceDark_RS },
                 onToggleSidebar = { sidebarVisible_RS = !sidebarVisible_RS }
             )
 
@@ -166,7 +164,7 @@ fun interceptRequestSample(viewModel: BrowserViewModel = viewModel(factory = Cus
                                             // 给页面一点时间渲染，确保 JS 函数可用
                                             delay(100)
                                             navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
-                                            toggleForceDarkMode(forceDark_RS.value, navigator)
+                                            toggleForceDarkMode(forceDark_RS, navigator)
                                         }
                                     }
                                 }
@@ -178,7 +176,8 @@ fun interceptRequestSample(viewModel: BrowserViewModel = viewModel(factory = Cus
                                         Modifier.fillMaxSize()
                                     } else {
                                         Modifier.size(0.dp)
-                                    } // if not place here will cause every time reload web
+                                    }, // if not place here will cause every time reload web
+                                    platformWebViewParams = getPlatformWebViewParams(),
                                 )
                             }
                         }
@@ -205,3 +204,6 @@ private fun createRequestInterceptor(): RequestInterceptor = object : RequestInt
 expect fun setupPlatformWebSettings(nativeWebView: NativeWebView, webSettings: WebSettings)
 
 expect fun randomUUID(): String
+
+@Composable
+expect fun getPlatformWebViewParams(): PlatformWebViewParams?

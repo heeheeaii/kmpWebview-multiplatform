@@ -1,7 +1,9 @@
 package com.hee.sample
 
+import androidx.compose.runtime.Composable
 import com.multiplatform.webview.setting.WebSettings
 import com.multiplatform.webview.web.NativeWebView
+import com.multiplatform.webview.web.PlatformWebViewParams
 import java.util.UUID
 
 /** Platform-specific tweaks live in expect/actual declarations. */
@@ -12,3 +14,6 @@ actual fun setupPlatformWebSettings(nativeWebView: NativeWebView, webSettings: W
 }
 
 actual fun randomUUID(): String = UUID.randomUUID().toString()
+
+@Composable
+actual fun getPlatformWebViewParams(): PlatformWebViewParams? = null
