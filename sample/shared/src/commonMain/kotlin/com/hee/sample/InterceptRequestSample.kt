@@ -11,6 +11,7 @@ import androidx.compose.material.darkColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -23,8 +24,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hee.sample.config.BrowserConfig
 import com.hee.sample.config.applyDefault
+import com.hee.sample.data.BrowserViewModel
+import com.hee.sample.data.CustomViewModelFactory
 import com.hee.sample.data.TabInfo
 import com.hee.sample.ui.BrowserBody
 import com.hee.sample.ui.BrowserTopBar
@@ -45,8 +49,8 @@ import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import kotlinx.coroutines.delay
 
 @Composable
-fun interceptRequestSample() {
-    var forceDark_RS by rememberSaveable { mutableStateOf(false) }
+fun interceptRequestSample(viewModel: BrowserViewModel = viewModel(factory = CustomViewModelFactory())) {
+    val forceDark_RS = viewModel.forceDark.collectAsState()
     var sidebarVisible_RS by rememberSaveable { mutableStateOf(true) }
 
     val tabs_RS = remember {
@@ -80,9 +84,9 @@ fun interceptRequestSample() {
         Column {
             BrowserTopBar(
                 navigator = activeNavigator_RS,
-                forceDark = forceDark_RS,
+                forceDark = forceDark_RS.value,
                 sidebarVisible = sidebarVisible_RS,
-                onToggleForceDark = { forceDark_RS = !forceDark_RS },
+                onToggleForceDark = { viewModel.toggleForceDark() },
                 onToggleSidebar = { sidebarVisible_RS = !sidebarVisible_RS }
             )
 
@@ -162,7 +166,7 @@ fun interceptRequestSample() {
                                             // 给页面一点时间渲染，确保 JS 函数可用
                                             delay(100)
                                             navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
-                                            toggleForceDarkMode(forceDark_RS, navigator)
+                                            toggleForceDarkMode(forceDark_RS.value, navigator)
                                         }
                                     }
                                 }
