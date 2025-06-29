@@ -43,6 +43,8 @@ fun main() =
                             cachePath = File("cache").absolutePath
                             addArgs(
                                 "--disable-features=BlockThirdPartyCookies,RestrictThirdPartyCookiePartitions",
+                                "--remote-debugging-port=9999",
+                                "--disable-background-timer-throttling",
                                 "--enable-features=LegacyCookieAccess",
                             )
                         }
