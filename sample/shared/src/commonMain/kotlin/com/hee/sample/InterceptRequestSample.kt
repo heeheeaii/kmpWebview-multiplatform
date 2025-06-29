@@ -101,7 +101,9 @@ fun interceptRequestSample() {
                 TabBar(
                     tabs = tabs_RS,
                     activeTabIndex = activeTabIndex_RS,
-                    onTabSelected = { index -> activeTabIndex_RS = index },
+                    onTabSelected = { index ->
+                        activeTabIndex_RS = index
+                    },
                     onTabClosed = { tabInfo ->
                         tabStateMap_RS.remove(tabInfo.id)
                         tabs_RS.remove(tabInfo)
@@ -182,30 +184,28 @@ fun interceptRequestSample() {
                                     }
                                 }
 
-                                val webViewModifier = if ((index == activeTabIndex_RS) && !showPop_RS) {
-                                    Modifier.fillMaxSize()
-                                } else {
-                                    Modifier.size(0.dp)
-                                }
-
                                 WebView(
                                     state = state,
                                     navigator = navigator,
-                                    modifier = webViewModifier,
+                                    modifier = if ((index == activeTabIndex_RS) && !showPop_RS) {
+                                        Modifier.fillMaxSize()
+                                    } else {
+                                        Modifier.size(0.dp)
+                                    },
                                     platformWebViewParams = getPlatformWebViewParams(),
                                 )
                             }
                         }
                     }
                 }
-                if (showPop_RS) {
-                    ContentPop(
-                        modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.8f).background(Color(0x51A818)),
-                        onDismissRequest = { showPop_RS = !showPop_RS },
-                        title = "温馨提示",
-                        text = "此为通用内容弹窗，可用于展示任意内容！"
-                    )
-                }
+            }
+            if (showPop_RS) {
+                ContentPop(
+                    modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.8f).background(Color(0x51A818)),
+                    onDismissRequest = { showPop_RS = !showPop_RS },
+                    title = "温馨提示",
+                    text = "此为通用内容弹窗，可用于展示任意内容！"
+                )
             }
         }
     }
