@@ -1,9 +1,13 @@
 package com.hee.sample
 
 import ContentPop
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,8 +35,8 @@ import androidx.compose.ui.unit.dp
 import com.hee.sample.config.BrowserConfig
 import com.hee.sample.config.applyDefault
 import com.hee.sample.data.TabInfo
-import com.hee.sample.ui.BrowserBody
 import com.hee.sample.ui.BrowserTopBar
+import com.hee.sample.ui.SiteSidebar
 import com.hee.sample.ui.TabBar
 import com.hee.sample.ui.toggleForceDarkMode
 import com.multiplatform.webview.request.RequestInterceptor
@@ -119,15 +123,19 @@ fun interceptRequestSample() {
                 if (loadingState is LoadingState.Loading) {
                     LinearProgressIndicator(loadingState.progress, Modifier.fillMaxWidth())
                 }
-
-                BrowserBody(
-                    sidebarVisible = sidebarVisible_RS,
-                    onSiteClick = { label, host ->
-                        val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(label))
-                        tabs_RS.add(newTab)
-                        activeTabIndex_RS = tabs_RS.lastIndex
-                    },
-                    content = {
+                Row(Modifier.fillMaxSize()) {
+                    AnimatedVisibility(
+                        visible = sidebarVisible_RS,
+                        enter = slideInHorizontally { -it },
+                        exit = slideOutHorizontally { -it }
+                    ) {
+                        SiteSidebar(onSiteClick = { label, host ->
+                            val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(label))
+                            tabs_RS.add(newTab)
+                            activeTabIndex_RS = tabs_RS.lastIndex
+                        })
+                    }
+                    Box(Modifier.weight(1f)) {
                         Box(Modifier.fillMaxSize()) {
                             val boxScope = rememberCoroutineScope()
                             tabs_RS.forEachIndexed { index, tabInfo ->
@@ -191,15 +199,15 @@ fun interceptRequestSample() {
                             }
                         }
                     }
-                )
-            }
-            if (showPop_RS) {
-                ContentPop(
-                    modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.8f).background(Color(0x51A818)),
-                    onDismissRequest = { showPop_RS = !showPop_RS },
-                    title = "温馨提示",
-                    text = "此为通用内容弹窗，可用于展示任意内容！"
-                )
+                }
+                if (showPop_RS) {
+                    ContentPop(
+                        modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.8f).background(Color(0x51A818)),
+                        onDismissRequest = { showPop_RS = !showPop_RS },
+                        title = "温馨提示",
+                        text = "此为通用内容弹窗，可用于展示任意内容！"
+                    )
+                }
             }
         }
     }
