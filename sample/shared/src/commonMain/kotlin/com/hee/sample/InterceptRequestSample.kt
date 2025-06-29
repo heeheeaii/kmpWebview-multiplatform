@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.hee.sample.config.BrowserConfig
@@ -82,7 +83,7 @@ fun interceptRequestSample() {
     val activeTabInfo = tabs_RS.getOrNull(activeTabIndex_RS)
     val activeTabStateAndNav = activeTabInfo?.id?.let { tabStateMap_RS[it] }
     val activeTabState = activeTabStateAndNav?.first
-    var activeNavigator_RS by remember { mutableStateOf(activeTabStateAndNav?.second) }
+    var activeNavigator_RS by remember { mutableStateOf(activeTabStateAndNav?.second) } // 委派 get set
 
     val colors = if (forceDark_RS) darkColors() else lightColors()
 
@@ -125,6 +126,7 @@ fun interceptRequestSample() {
                 if (loadingState is LoadingState.Loading) {
                     LinearProgressIndicator(loadingState.progress, Modifier.fillMaxWidth())
                 }
+
                 Row(Modifier.fillMaxSize()) {
                     AnimatedVisibility(
                         visible = sidebarVisible_RS,
@@ -160,9 +162,7 @@ fun interceptRequestSample() {
                                 if (navigator == null) {
                                     navigator = rememberWebViewNavigator(
                                         coroutineScope = boxScope,
-                                        requestInterceptor = remember {
-                                            createRequestInterceptor()
-                                        }
+                                        requestInterceptor = createRequestInterceptor()
                                     )
                                 }
 
@@ -190,7 +190,7 @@ fun interceptRequestSample() {
                                     modifier = if ((index == activeTabIndex_RS) && !showPop_RS) {
                                         Modifier.fillMaxSize()
                                     } else {
-                                        Modifier.size(0.dp)
+                                        Modifier.alpha(0f) // note: close will cause critical bug
                                     },
                                     platformWebViewParams = getPlatformWebViewParams(),
                                 )
