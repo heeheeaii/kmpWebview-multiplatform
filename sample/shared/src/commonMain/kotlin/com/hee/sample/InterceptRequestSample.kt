@@ -135,67 +135,65 @@ fun interceptRequestSample() {
                             activeTabIndex_RS = tabs_RS.lastIndex
                         })
                     }
-                    Box(Modifier.weight(1f)) {
-                        Box(Modifier.fillMaxSize()) {
-                            val boxScope = rememberCoroutineScope()
-                            tabs_RS.forEachIndexed { index, tabInfo ->
-                                key(tabInfo.id) {
-                                    var state = tabStateMap_RS[tabInfo.id]?.first // cache page state
-                                    val isHasCache = state != null
-                                    if (state == null) {
-                                        state = if (tabInfo.initialHtml != null) {
-                                            rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
-                                        } else if (tabInfo.initialUrl != null) {
-                                            rememberWebViewState(url = tabInfo.initialUrl)
-                                        } else {
-                                            rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
-                                        }
-                                        LaunchedEffect(Unit) {
-                                            state.webSettings.applyDefault()
-                                            setupPlatformWebSettings(state.nativeWebView, state.webSettings)
-                                        }
-                                    }
-                                    var navigator = tabStateMap_RS[tabInfo.id]?.second
-                                    if (navigator == null) {
-                                        navigator = rememberWebViewNavigator(
-                                            coroutineScope = boxScope,
-                                            requestInterceptor = remember {
-                                                createRequestInterceptor()
-                                            }
-                                        )
-                                    }
-
-                                    if (!isHasCache) {
-                                        tabStateMap_RS[tabInfo.id] = state to navigator
-                                    }
-
-                                    if (index == activeTabIndex_RS) {
-                                        LaunchedEffect(navigator) {
-                                            activeNavigator_RS = navigator
-                                        }
-                                        LaunchedEffect(forceDark_RS, state.loadingState) {
-                                            if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
-                                                // 给页面一点时间渲染，确保 JS 函数可用
-                                                delay(100)
-                                                navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
-                                                toggleForceDarkMode(forceDark_RS, navigator)
-                                            }
-                                        }
-                                    }
-
-                                    val webViewModifier = if ((index == activeTabIndex_RS) && !showPop_RS) {
-                                        Modifier.fillMaxSize()
+                    Box(Modifier.weight(1f).fillMaxSize()) {
+                        val boxScope = rememberCoroutineScope()
+                        tabs_RS.forEachIndexed { index, tabInfo ->
+                            key(tabInfo.id) {
+                                var state = tabStateMap_RS[tabInfo.id]?.first // cache page state
+                                val isHasCache = state != null
+                                if (state == null) {
+                                    state = if (tabInfo.initialHtml != null) {
+                                        rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
+                                    } else if (tabInfo.initialUrl != null) {
+                                        rememberWebViewState(url = tabInfo.initialUrl)
                                     } else {
-                                        Modifier.size(0.dp)
+                                        rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
                                     }
-
-                                    WebView(
-                                        state = state,
-                                        navigator = navigator,
-                                        modifier = webViewModifier,
-                                        platformWebViewParams = getPlatformWebViewParams(),
+                                    LaunchedEffect(Unit) {
+                                        state.webSettings.applyDefault()
+                                        setupPlatformWebSettings(state.nativeWebView, state.webSettings)
+                                    }
+                                }
+                                var navigator = tabStateMap_RS[tabInfo.id]?.second
+                                if (navigator == null) {
+                                    navigator = rememberWebViewNavigator(
+                                        coroutineScope = boxScope,
+                                        requestInterceptor = remember {
+                                            createRequestInterceptor()
+                                        }
                                     )
                                 }
+
+                                if (!isHasCache) {
+                                    tabStateMap_RS[tabInfo.id] = state to navigator
+                                }
+
+                                if (index == activeTabIndex_RS) {
+                                    LaunchedEffect(navigator) {
+                                        activeNavigator_RS = navigator
+                                    }
+                                    LaunchedEffect(forceDark_RS, state.loadingState) {
+                                        if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
+                                            // 给页面一点时间渲染，确保 JS 函数可用
+                                            delay(100)
+                                            navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
+                                            toggleForceDarkMode(forceDark_RS, navigator)
+                                        }
+                                    }
+                                }
+
+                                val webViewModifier = if ((index == activeTabIndex_RS) && !showPop_RS) {
+                                    Modifier.fillMaxSize()
+                                } else {
+                                    Modifier.size(0.dp)
+                                }
+
+                                WebView(
+                                    state = state,
+                                    navigator = navigator,
+                                    modifier = webViewModifier,
+                                    platformWebViewParams = getPlatformWebViewParams(),
+                                )
                             }
                         }
                     }
