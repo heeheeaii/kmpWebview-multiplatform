@@ -44,6 +44,7 @@ kotlin {
             implementation(libs.kotlin.coroutines.core)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.tabNavigator)
+            implementation("androidx.compose.material3:material3:1.3.2")
 
             api(project(":webview"))
         }

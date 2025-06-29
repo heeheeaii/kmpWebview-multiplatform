@@ -17,6 +17,7 @@ object BrowserConfig {
         ".*://.*kimi\\.com.*",
         ".*://.*deepseek\\.com.*",
 
+        ".*://.*mvnrepository\\.com.*",
         ".*://.*alicdn\\.com.*",
         ".*://.*localhost.*",
         ".*://.*127\\.0\\.0\\.1.*",

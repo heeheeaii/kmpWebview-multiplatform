@@ -1,7 +1,10 @@
 package com.hee.sample
 
+import ContentPop
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -23,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.hee.sample.config.BrowserConfig
 import com.hee.sample.config.applyDefault
@@ -78,112 +82,125 @@ fun interceptRequestSample() {
 
     val colors = if (forceDark_RS) darkColors() else lightColors()
 
+    var showPop_RS by remember { mutableStateOf(false) } // pop box
     MaterialTheme(colors = colors) {
-        Column {
-            BrowserTopBar(
-                navigator = activeNavigator_RS,
-                forceDark = forceDark_RS,
-                sidebarVisible = sidebarVisible_RS,
-                onToggleForceDark = { forceDark_RS = !forceDark_RS },
-                onToggleSidebar = { sidebarVisible_RS = !sidebarVisible_RS }
-            )
+        Box(Modifier.fillMaxSize()) {
+            Column {
+                BrowserTopBar(
+                    navigator = activeNavigator_RS,
+                    forceDark = forceDark_RS,
+                    sidebarVisible = sidebarVisible_RS,
+                    onToggleForceDark = { forceDark_RS = !forceDark_RS },
+                    onToggleSidebar = { sidebarVisible_RS = !sidebarVisible_RS }
+                )
 
-            TabBar(
-                tabs = tabs_RS,
-                activeTabIndex = activeTabIndex_RS,
-                onTabSelected = { index -> activeTabIndex_RS = index },
-                onTabClosed = { tabInfo ->
-                    tabStateMap_RS.remove(tabInfo.id)
-                    tabs_RS.remove(tabInfo)
-                    if (activeTabIndex_RS >= tabs_RS.size && tabs_RS.isNotEmpty()) {
-                        activeTabIndex_RS = tabs_RS.size - 1
-                    } else if (tabs_RS.isEmpty()) {
-                        activeTabIndex_RS = 0
-                        tabs_RS.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
+                TabBar(
+                    tabs = tabs_RS,
+                    activeTabIndex = activeTabIndex_RS,
+                    onTabSelected = { index -> activeTabIndex_RS = index },
+                    onTabClosed = { tabInfo ->
+                        tabStateMap_RS.remove(tabInfo.id)
+                        tabs_RS.remove(tabInfo)
+                        if (activeTabIndex_RS >= tabs_RS.size && tabs_RS.isNotEmpty()) {
+                            activeTabIndex_RS = tabs_RS.size - 1
+                        } else if (tabs_RS.isEmpty()) {
+                            activeTabIndex_RS = 0
+                            tabs_RS.add(TabInfo(initialHtml = BrowserConfig.INITIAL_HTML))
+                        }
+                    },
+                    onNewTab = {
+                        val newTab = TabInfo(initialHtml = BrowserConfig.INITIAL_HTML, title = mutableStateOf("Home"))
+                        tabs_RS.add(newTab)
+                        activeTabIndex_RS = tabs_RS.lastIndex
                     }
-                },
-                onNewTab = {
-                    val newTab = TabInfo(initialHtml = BrowserConfig.INITIAL_HTML, title = mutableStateOf("Home"))
-                    tabs_RS.add(newTab)
-                    activeTabIndex_RS = tabs_RS.lastIndex
+                )
+
+                val loadingState = activeTabState?.loadingState
+                if (loadingState is LoadingState.Loading) {
+                    LinearProgressIndicator(loadingState.progress, Modifier.fillMaxWidth())
                 }
-            )
 
-            val loadingState = activeTabState?.loadingState
-            if (loadingState is LoadingState.Loading) {
-                LinearProgressIndicator(loadingState.progress, Modifier.fillMaxWidth())
-            }
-
-            BrowserBody(
-                sidebarVisible = sidebarVisible_RS,
-                onSiteClick = { label, host ->
-                    val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(label))
-                    tabs_RS.add(newTab)
-                    activeTabIndex_RS = tabs_RS.lastIndex
-                },
-                content = {
-                    Box(Modifier.fillMaxSize()) {
-                        val boxScope = rememberCoroutineScope()
-                        tabs_RS.forEachIndexed { index, tabInfo ->
-                            key(tabInfo.id) {
-                                var state = tabStateMap_RS[tabInfo.id]?.first // cache page state
-                                val isHasCache = state != null
-                                if (state == null) {
-                                    state = if (tabInfo.initialHtml != null) {
-                                        rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
-                                    } else if (tabInfo.initialUrl != null) {
-                                        rememberWebViewState(url = tabInfo.initialUrl)
-                                    } else {
-                                        rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
-                                    }
-                                    LaunchedEffect(Unit) {
-                                        state.webSettings.applyDefault()
-                                        setupPlatformWebSettings(state.nativeWebView, state.webSettings)
-                                    }
-                                }
-                                var navigator = tabStateMap_RS[tabInfo.id]?.second
-                                if (navigator == null) {
-                                    navigator = rememberWebViewNavigator(
-                                        coroutineScope = boxScope,
-                                        requestInterceptor = remember {
-                                            createRequestInterceptor()
+                BrowserBody(
+                    sidebarVisible = sidebarVisible_RS,
+                    onSiteClick = { label, host ->
+                        val newTab = TabInfo(initialUrl = "https://$host", title = mutableStateOf(label))
+                        tabs_RS.add(newTab)
+                        activeTabIndex_RS = tabs_RS.lastIndex
+                    },
+                    content = {
+                        Box(Modifier.fillMaxSize()) {
+                            val boxScope = rememberCoroutineScope()
+                            tabs_RS.forEachIndexed { index, tabInfo ->
+                                key(tabInfo.id) {
+                                    var state = tabStateMap_RS[tabInfo.id]?.first // cache page state
+                                    val isHasCache = state != null
+                                    if (state == null) {
+                                        state = if (tabInfo.initialHtml != null) {
+                                            rememberWebViewStateWithHTMLData(data = tabInfo.initialHtml)
+                                        } else if (tabInfo.initialUrl != null) {
+                                            rememberWebViewState(url = tabInfo.initialUrl)
+                                        } else {
+                                            rememberWebViewStateWithHTMLData(data = BrowserConfig.INITIAL_HTML)
                                         }
-                                    )
-                                }
-
-                                if (!isHasCache) {
-                                    tabStateMap_RS[tabInfo.id] = state to navigator
-                                }
-
-                                if (index == activeTabIndex_RS) {
-                                    LaunchedEffect(navigator) {
-                                        activeNavigator_RS = navigator
-                                    }
-                                    LaunchedEffect(forceDark_RS, state.loadingState) {
-                                        if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
-                                            // 给页面一点时间渲染，确保 JS 函数可用
-                                            delay(100)
-                                            navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
-                                            toggleForceDarkMode(forceDark_RS, navigator)
+                                        LaunchedEffect(Unit) {
+                                            state.webSettings.applyDefault()
+                                            setupPlatformWebSettings(state.nativeWebView, state.webSettings)
                                         }
                                     }
-                                }
+                                    var navigator = tabStateMap_RS[tabInfo.id]?.second
+                                    if (navigator == null) {
+                                        navigator = rememberWebViewNavigator(
+                                            coroutineScope = boxScope,
+                                            requestInterceptor = remember {
+                                                createRequestInterceptor()
+                                            }
+                                        )
+                                    }
 
-                                WebView(
-                                    state = state,
-                                    navigator = navigator,
-                                    modifier = if (index == activeTabIndex_RS) {
+                                    if (!isHasCache) {
+                                        tabStateMap_RS[tabInfo.id] = state to navigator
+                                    }
+
+                                    if (index == activeTabIndex_RS) {
+                                        LaunchedEffect(navigator) {
+                                            activeNavigator_RS = navigator
+                                        }
+                                        LaunchedEffect(forceDark_RS, state.loadingState) {
+                                            if (state.loadingState is LoadingState.Finished || tabInfo.initialHtml != null) {
+                                                // 给页面一点时间渲染，确保 JS 函数可用
+                                                delay(100)
+                                                navigator.evaluateJavaScript("toggleTheme($forceDark_RS);")
+                                                toggleForceDarkMode(forceDark_RS, navigator)
+                                            }
+                                        }
+                                    }
+
+                                    val webViewModifier = if ((index == activeTabIndex_RS) && !showPop_RS) {
                                         Modifier.fillMaxSize()
                                     } else {
                                         Modifier.size(0.dp)
-                                    }, // if not place here will cause every time reload web
-                                    platformWebViewParams = getPlatformWebViewParams(),
-                                )
+                                    }
+
+                                    WebView(
+                                        state = state,
+                                        navigator = navigator,
+                                        modifier = webViewModifier,
+                                        platformWebViewParams = getPlatformWebViewParams(),
+                                    )
+                                }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
+            if (showPop_RS) {
+                ContentPop(
+                    modifier = Modifier.fillMaxWidth(0.8f).fillMaxHeight(0.8f).background(Color(0x51A818)),
+                    onDismissRequest = { showPop_RS = !showPop_RS },
+                    title = "温馨提示",
+                    text = "此为通用内容弹窗，可用于展示任意内容！"
+                )
+            }
         }
     }
 }
